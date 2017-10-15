@@ -25,7 +25,8 @@ const max = Math.pow(10, 2);
 
 class Anger extends Component {
   state = {
-    flag: false
+    flag: false,
+    items :[]
   };
   handleToggle = (event, value) => {
     this.setState({ flag: value, value: 0 });
@@ -47,8 +48,29 @@ class Anger extends Component {
       value: 0
     });
   };
+  componentDidMount(){
+    const itemsRef = firebase.database().ref("anger");
+    itemsRef.on('value',(snapshot)=>{
+      let items = snapshot.val();
+      let newState = [];
+      for(let item in items){
+        newState.push({
+          id:item,
+          flag : items[item].flag,
+          value : items[item].value,
+          date : items[item].date
+        });
+      }
+      this.setState({
+        items : newState
+      },()=>{
+        console.log('items',this.state.items);
+      });
+
+    });
+  }
   render() {
-    return [
+    return <div className="container">
       <section className="add-item">
         <form onSubmit={this.handleSubmit}>
           <Toggle
@@ -86,10 +108,23 @@ class Anger extends Component {
       </section>,
       <section className="display-item">
         <div className="wrapper">
-          <ul />
+          <ul>
+            {
+              this.state.items.length > 0 ? 
+              this.state.items.map((item)=>{
+                return(
+                  <li key={item.id}>
+                    <h3>{item.flag}</h3>
+                    <p>{item.value}</p>
+                    <p>{item.date}</p>
+                  </li>
+                  )
+              }) : <li>No Data Found</li>
+            }
+          </ul>
         </div>
       </section>
-    ];
+    </div>;
   }
 }
 
